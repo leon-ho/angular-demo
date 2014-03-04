@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html ng-app>
+  <head>
+    <title>Angular ACS Demo</title>
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body { margin: 1em;}
+      .photo_small {
+        width: 48px;
+        height: 48px;
+        background-size: cover; 
+        background-position: center;
+      }
+      table { border: 1px solid #ccc; margin-top: 1em;}
+      th, td {padding: .3em; border-bottom: 1px solid #ccc;}
+    </style>
+  </head>
+  
+  <body>
+  
+    <h1>Angular ACS search</h1>
+  
+    <div ng-controller="AcsCtrl">
+      
+      <form>
+        <input type="text" ng-model="searchQuery" placeholder="Search..." ng-change="searchAcs()" autofocus>
+      </form>
+      
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th ng-click="orderByColumn='name';orderReverse=!orderReverse">Name</th>
+            <th ng-click="orderByColumn='title';orderReverse=!orderReverse">Title</th>
+            <th ng-click="orderByColumn='department';orderReverse=!orderReverse">Department</th>
+          </tr>
+        </thead>
+        <tr ng-repeat="person in persons | orderBy:orderByColumn:orderReverse">
+          <td><div style="background-image: url(http://cv.altran.se/media/{{person.image}})" class="photo_small"></div></td>
+          <td>{{person.name}}</td>
+          <td>{{person.title}}</td>
+          <td>{{person.department}}</td>
+        </tr>
+        <tr>
+          <td colspan="4" ng-if="!persons.length && searchQuery">No results for search "{{searchQuery}}".</td>
+          <td colspan="4" ng-if="!persons.length && !searchQuery">Type above to start searching!</td>
+        </tr>
+      </table>
+
+      <p>Sorting by: {{orderByColumn}} - Reversed: {{orderReverse}}</p>
+
+    </div>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.min.js"></script>
+    <script>
+      function AcsCtrl($scope, $http) {
+       
+        $scope.persons = [ ];
+        $scope.orderByColumn = 'name';
+        $scope.orderReverse = false;
+       
+        $scope.searchAcs = function() {
+
+          if( $scope.searchQuery !== '') {
+
+            $http({
+              method: 'JSONP',
+              url: 'https://cv.altran.se/solr/collection1/select',
+              params: {
+                'json.wrf': 'JSON_CALLBACK',
+                'q': $scope.searchQuery,
+                'wt':'json',
+                'rows':10,
+                'fl': 'rendered',
+                'facet': 'true',
+                'facet.field': [
+                  'location_exact', 
+                  'department_exact',
+                  'years_of_experience_exact'
+                  ]
+              }
+            }).success(function (data) {
+              $scope.persons = [];
+              var docs = data.response.docs;
+              if( docs.length>0 ) {
+                for( var i=0; i<docs.length; i++ ) {
+                  var person = JSON.parse( docs[i].rendered );
+                  person.image = person.image.replace(/(.jpg|.png)/gi,'_scale_110x110.jpg');
+                  $scope.persons.push( person );
+                }
+              }
+            })
+          } else {
+            $scope.persons = [];
+          }
+        };
+       
+      }
+    </script>
+
+  </body>
+
+</html>
