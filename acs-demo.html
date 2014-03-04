@@ -1,44 +1,57 @@
 <!DOCTYPE html>
 <html ng-app>
   <head>
+    <title>Angular ACS Demo</title>
     <link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.min.js"></script>
     <script>
       function AcsCtrl($scope, $http) {
        
-        $scope.persons = [];
+        var noQueryPerson = {name: 'Type above to start searching!'};
+        $scope.persons = [ noQueryPerson ];
         $scope.orderByColumn = 'name';
         $scope.orderReverse = false;
        
         $scope.searchAcs = function() {
-          $http({
-            method: 'JSONP',
-            url: 'https://cv.altran.se/solr/collection1/select',
-            params: {
-              'json.wrf': 'JSON_CALLBACK',
-              'q': $scope.searchQuery,
-              'wt':'json',
-              'rows':10,
-              'fl': 'rendered',
-              'facet': 'true',
-              'facet.field': [
-                'location_exact', 
-                'department_exact',
-                'years_of_experience_exact'
-                ]
-            }
-          }).success(function (data) {
-            $scope.persons = [];
-            var docs = data.response.docs;
-            for( var i=0; i<docs.length; i++ ) {
-              var person = JSON.parse( docs[i].rendered );
-              person.image = person.image.replace(/(.jpg|.png)/gi,'_scale_110x110.jpg');
-              $scope.persons.push( person );
-            }
-            console.log($scope.persons);
-          }).error(function () {
-            $scope.persons = [{name:'Sum Ting Wong'}];
-          });
+
+          if( $scope.searchQuery !== '') {
+
+            $http({
+              method: 'JSONP',
+              url: 'https://cv.altran.se/solr/collection1/select',
+              params: {
+                'json.wrf': 'JSON_CALLBACK',
+                'q': $scope.searchQuery,
+                'wt':'json',
+                'rows':10,
+                'fl': 'rendered',
+                'facet': 'true',
+                'facet.field': [
+                  'location_exact', 
+                  'department_exact',
+                  'years_of_experience_exact'
+                  ]
+              }
+            }).success(function (data) {
+              $scope.persons = [];
+              var docs = data.response.docs;
+              if( docs.length>0 ) {
+                for( var i=0; i<docs.length; i++ ) {
+                  var person = JSON.parse( docs[i].rendered );
+                  person.image = person.image.replace(/(.jpg|.png)/gi,'_scale_110x110.jpg');
+                  $scope.persons.push( person );
+                }
+              } else {
+                $scope.persons = [{name:'Sorry, we couldn\'t find anything for your searchword "'+$scope.searchQuery+'".'}]
+              }
+            }).error(function () {
+              $scope.persons = [{name:'Sum Ting Wong'}];
+            });
+
+          } else {
+            $scope.persons = [ noQueryPerson ];
+          }
+
         };
        
       }
@@ -58,7 +71,7 @@
   
   <body>
   
-    <h2>ACS search</h2>
+    <h1>Angular ACS search</h1>
   
     <div ng-controller="AcsCtrl">
       
