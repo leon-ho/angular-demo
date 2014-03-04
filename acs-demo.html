@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html ng-app>
   <head>
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.min.js"></script>
     <script>
       function AcsCtrl($scope, $http) {
@@ -43,22 +44,35 @@
       }
     </script>
     <style>
-      .photo_small { width: 64px; height: 64px; background-size: cover; }
+      body { margin: 1em;}
+      .photo_small {
+        width: 48px;
+        height: 48px;
+        background-size: cover; 
+        background-position: center;
+      }
+      table { border: 1px solid #ccc; margin-top: 1em;}
+      th, td {padding: .3em; border-bottom: 1px solid #ccc;}
     </style>
   </head>
+  
   <body>
+  
     <h2>ACS search</h2>
+  
     <div ng-controller="AcsCtrl">
+      
       <form>
         <input type="text" ng-model="searchQuery" placeholder="Search..." ng-change="searchAcs()" autofocus>
       </form>
+      
       <table>
         <thead>
           <tr>
             <th></th>
-            <th ng-click="orderByColumn='name';orderReverse:!orderReverse">Name</th>
-            <th ng-click="orderByColumn='title';orderReverse:!orderReverse">Title</th>
-            <th ng-click="orderByColumn='department';orderReverse:!orderReverse">Department</th>
+            <th ng-click="orderByColumn='name';orderReverse=!orderReverse">Name</th>
+            <th ng-click="orderByColumn='title';orderReverse=!orderReverse">Title</th>
+            <th ng-click="orderByColumn='department';orderReverse=!orderReverse">Department</th>
           </tr>
         </thead>
         <tr ng-repeat="person in persons | orderBy:orderByColumn:orderReverse">
@@ -68,6 +82,11 @@
           <td>{{person.department}}</td>
         </tr>
       </table>
+
+      <p>Sorting by: {{orderByColumn}} - Reversed: {{orderReverse}}</p>
+
     </div>
+
   </body>
+
 </html>
